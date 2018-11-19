@@ -73,7 +73,17 @@ namespace ChessGame2
 
 		class King : Piece
 		{
-			//Always returns true because the king can only move 1 tile in any direction.
+			public override bool CalculateAngle(int[] coords)
+			{
+				if(Math.Abs(coords[0] - coords[1]) == 1 && Math.Abs(coords[2] - coords[3]) == 1)
+					return true;
+				else
+					return false;
+			}
+		}
+
+		class Knight : Piece
+		{
 			public override bool CalculateAngle(int[] coords)
 			{
 				return true;
@@ -84,7 +94,7 @@ namespace ChessGame2
 		{
 			public override bool CalculateAngle(int[] coords)
 			{
-				throw new NotImplementedException();
+				return true;
 			}
 		}
 	}
