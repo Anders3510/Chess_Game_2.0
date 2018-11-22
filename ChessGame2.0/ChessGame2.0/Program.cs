@@ -151,6 +151,10 @@ namespace ChessGame2
 
 		private bool CheckMovement(int[] coords)
 		{
+			Knight k = new Knight(PieceColor.white);
+			if(ReferenceEquals(board[coords[0], coords[2]].GetType(), k.GetType()))
+				return true;
+
 			int yChange = Math.Sign(coords[1] - coords[0]);
 			int xChange = Math.Sign(coords[3] - coords[2]);
 			//i = y axis
