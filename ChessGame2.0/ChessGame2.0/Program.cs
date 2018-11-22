@@ -288,7 +288,22 @@ namespace ChessGame2
 
 			public override bool CalculateAngle(int[] coords)
 			{
-				if (Math.Abs(coords[0] - coords[1]) == 1 && Math.Abs(coords[2] - coords[3]) == 1)
+				bool xApproved;
+				bool yApproved;
+				int yOffset = Math.Abs(coords[0] - coords[1]);
+				int xOffset = Math.Abs(coords[2] - coords[3]);
+
+				if(yOffset == 1 || yOffset == 0)
+					yApproved = true;
+				else
+					yApproved = false;
+
+				if (xOffset == 1 || xOffset == 0)
+					xApproved = true;
+				else
+					xApproved = false;
+
+				if(yApproved && xApproved)
 					return true;
 				else
 					return false;
