@@ -53,6 +53,11 @@ namespace ChessGame2
 	class ChessGame
 	{
 		Piece[,] board = new Piece[8, 8];
+		//Flag for player-switching
+		// 1 : player 1 (white)
+		//-1 : player 2 (black)
+		int f_player = 1;
+		
 
 		//Coords array: { y1, y2, x1, x2 }
 		/*
@@ -95,18 +100,21 @@ namespace ChessGame2
 
 			for (int i = 0; i < 8; i += 1)
 			{
-				board[1, i] = new Pawn(PieceColor.white);
+				board[1, i] = new Pawn(PieceColor.white, board);
 			}
 
 			for (int i = 0; i < 8; i += 1)
 			{
-				board[6, i] = new Pawn(PieceColor.black);
+				board[6, i] = new Pawn(PieceColor.black, board);
 			}
 		}
 
+		/// <summary>
+		/// Prints the chessboard and a guide to the console.
+		/// </summary>
 		public void PrintBoard()
 		{
-			Console.WriteLine(" _______________________________");
+			Console.WriteLine(" _______________________________________");
 			//Iterate Rows
 			for (int i = 0; i < board.GetLength(0); i += 1)
 			{
@@ -115,14 +123,25 @@ namespace ChessGame2
 				for (int j = 0; j < board.GetLength(1); j += 1)
 				{
 					if (board[i, j] == null)
-						Console.Write("   |");
+						Console.Write("    |");
 					else
-						Console.Write($" {board[i, j].GetID()} |");
+						if (board[i, j].GetColor() == PieceColor.white)
+						Console.Write($" W{board[i, j].GetID()} |");
+					else
+						Console.Write($" B{board[i, j].GetID()} |");
 				}
-				Console.Write("\n|_______________________________|\n");
+				Console.Write($"          {((i + 1) * -1) + 9}");
+				Console.Write("\n|_______________________________________|\n");
 			}
+			Console.WriteLine($"                                                    A    B    C    D    E    F    G    H");
 		}
 
+		/// <summary>
+		/// Helper function that parses the letters
+		/// A-H into a corresponding index position
+		/// </summary>
+		/// <param name="input">String in which the first character is parsed</param>
+		/// <returns>An index number, or -1 if the character could not be parsed</returns>
 		private int ParseLetter(string input)
 		{
 			int x;
@@ -149,10 +168,16 @@ namespace ChessGame2
 			return x;
 		}
 
+		/// <summary>
+		/// Helper function that iterates from a Piece's starting position
+		/// towards the target position, and determines if the move is legal.
+		/// </summary>
+		/// <param name="coords">An array of array coordinates.</param>
+		/// <returns>A boolean value indicating if the move is legal.</returns>
 		private bool CheckMovement(int[] coords)
 		{
 			Knight k = new Knight(PieceColor.white);
-			if(ReferenceEquals(board[coords[0], coords[2]].GetType(), k.GetType()))
+			if (ReferenceEquals(board[coords[0], coords[2]].GetType(), k.GetType()))
 				return true;
 
 			int yChange = Math.Sign(coords[1] - coords[0]);
@@ -163,7 +188,7 @@ namespace ChessGame2
 			int i = coords[0] + yChange;
 			int j = coords[2] + xChange;
 
-			while(i != coords[1] || j != coords[3])
+			while (i != coords[1] || j != coords[3])
 			{
 				if (board[i, j] != null) //If there is a Piece present, then, if the color is not equal, and the target position matches the current
 					if (board[coords[0], coords[2]].GetColor() != board[i, j].GetColor() && (i == coords[1] && j == coords[3]))
@@ -181,23 +206,40 @@ namespace ChessGame2
 			return true;
 		}
 
+		/// <summary>
+		/// Receives start and end positions, and tells the main program
+		/// if a Piece's movement is legal. Switches player if the move
+		/// is successful.
+		/// </summary>
+		/// <param name="pieceToMove">A string containing the starting position of the piece</param>
+		/// <param name="newLocation">A string containing the target position of a piece</param>
+		/// <returns>A boolean value indicating if the move is legal</returns>
 		public bool PieceMovement(string pieceToMove, string newLocation)
 		{
-			int y = int.Parse(pieceToMove[1].ToString()) - 1;
+			//Get start and end coordinates
+			int y = int.Parse(pieceToMove[1].ToString()) * -1 + 8;
 			int x = ParseLetter(pieceToMove);
 
-			int newY = int.Parse(newLocation[1].ToString()) - 1;
+			int newY = int.Parse(newLocation[1].ToString()) * -1 + 8;
 			int newX = ParseLetter(newLocation);
-			
-			if (board[y, x] == null || (x == newX && y == newY))
-				return false;
 
+			//If the starting position is null, or the start and end positions match
+			if (board[y, x] == null || (x == newX && y == newY))
+				return false; //If the piece the player is attempting to move does not match the current player
+			else if (board[y, x].GetColor() == PieceColor.white && f_player == -1 || (board[y, x].GetColor() == PieceColor.black && f_player == 1))
+				return false;
+			
+			//Create coordinate array
 			int[] coords = new int[] { y, newY, x, newX };
 
+			//Check if move is legal
 			if (board[y, x].CalculateAngle(coords) && CheckMovement(coords))
 			{
+				//Move piece
 				board[newY, newX] = board[y, x];
 				board[y, x] = null;
+				//Switch player
+				f_player *= -1;
 				return true;
 			}
 			else
@@ -228,7 +270,7 @@ namespace ChessGame2
 
 			public override bool CalculateAngle(int[] coords)
 			{
-				if(coords[0] - coords[1] == 0)
+				if (coords[0] - coords[1] == 0)
 					return true;
 
 				if (Math.Abs(coords[2] - coords[3]) / Math.Abs(coords[0] - coords[1]) == 0)
@@ -297,7 +339,7 @@ namespace ChessGame2
 				int yOffset = Math.Abs(coords[0] - coords[1]);
 				int xOffset = Math.Abs(coords[2] - coords[3]);
 
-				if(yOffset == 1 || yOffset == 0)
+				if (yOffset == 1 || yOffset == 0)
 					yApproved = true;
 				else
 					yApproved = false;
@@ -307,7 +349,7 @@ namespace ChessGame2
 				else
 					xApproved = false;
 
-				if(yApproved && xApproved)
+				if (yApproved && xApproved)
 					return true;
 				else
 					return false;
@@ -355,10 +397,48 @@ namespace ChessGame2
 
 		class Pawn : Piece
 		{
-			public Pawn(PieceColor color) : base(color) { }
+			public Pawn(PieceColor color, Piece[,] board) : base(color) { this.board = board; }
+
+			Piece[,] board; 
+			bool hasMoved = false;
 
 			public override bool CalculateAngle(int[] coords)
 			{
+				if (hasMoved) //If the piece has moved at least once during the game
+				{
+					int offset = 0;
+					if (GetColor() == PieceColor.white) //If piece is white
+						offset = 1;
+					else
+						offset = -1;
+
+					if (coords[1] != coords[0] + offset) //If piece is not moving in the correct direction
+						return false;
+
+					int xOffset = Math.Abs(coords[2] - coords[3]);
+					if (xOffset == 1 || xOffset == -1) //If offset on the x-axis is 1 or -1
+					{
+						PieceColor tempColor;
+						if (board[coords[1], coords[3]] != null)
+							tempColor = board[coords[1], coords[3]].GetColor();
+						else
+							tempColor = GetColor();
+						//If target position is occupied and the color does not match
+						if (board[coords[1], coords[3]] != null && GetColor() != tempColor)
+							return true;
+						else
+							return false;
+					}
+					else if (xOffset == 0 && board[coords[1], coords[3]] == null)
+						return true;
+					else
+						return false;
+				}
+				else
+				{
+					
+					hasMoved = true;
+				}
 				return true;
 			}
 
