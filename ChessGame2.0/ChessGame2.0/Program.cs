@@ -260,7 +260,18 @@ namespace ChessGame2
 				return color;
 			}
 
+			/// <summary>
+			/// Calculates movement angles and other unique characteristics
+			/// of Piece's derived types.
+			/// </summary>
+			/// <param name="coords">An array of piece coordinates</param>
+			/// <returns>A boolean value indicating whether the attempted move is legal.</returns>
 			public abstract bool CalculateAngle(int[] coords);
+
+			/// <summary>
+			///	Returns a derived type of Piece's identifying character.
+			/// </summary>
+			/// <returns>A character used for identifying the type of Piece the object is on the board</returns>
 			public abstract char GetID();
 		}
 
